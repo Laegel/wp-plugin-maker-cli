@@ -1,0 +1,17 @@
+{
+    "name": "laegel/wp-plugin-maker-cli",
+    "description": "wp-plugin-maker CLI",
+    "type": "library",
+    "scripts": {
+        "watch": "./main.php watch"
+    },
+    "autoload":{
+        "psr-4":{
+            "WP_Plugin_Maker_CLI\\":"src/"
+        }
+    },
+    "require": {
+        "vtardia/cli-parser": "^1.0",
+        "jasonlewis/resource-watcher": "^1.2"
+    }
+}
