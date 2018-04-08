@@ -34,9 +34,9 @@ class Build extends Command {
     }
 
 	public function saveHooks($currentFolder, $toAdd) {
-		$this->log('Updating require-' . $currentFolder . '.php');
+		$this->log('Updating require-' . strtolower($currentFolder) . '.php');
 		$content = '<?php return ' . var_export($toAdd, true) . ';';
-		file_put_contents(self::$dir . DIRECTORY_SEPARATOR . 'require-' . $currentFolder . '.php', $content);
+		file_put_contents(self::$dir . DIRECTORY_SEPARATOR . 'require-' . strtolower($currentFolder) . '.php', $content);
 	}
 
     private function browseFolder($folder) {
@@ -83,10 +83,12 @@ class Build extends Command {
 						];
 					});
 
-					self::$dataRequire[$class] = [
-						'actions' => $parsed,
-						'path' => str_replace(self::$dir, '', $folder . DIRECTORY_SEPARATOR . $file)
-					];
+					if (!empty($parsed)) {
+						self::$dataRequire[$class] = [
+							'actions' => $parsed,
+							'path' => str_replace(self::$dir, '', $folder . DIRECTORY_SEPARATOR . $file)
+						];
+					}
 				}
 			}
 		}

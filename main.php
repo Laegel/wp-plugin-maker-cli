@@ -1,8 +1,9 @@
 #!/usr/bin/env php
 <?php
 require 'vendor/autoload.php';
+require 'polyfills.php';
 
-use CLIParser\CliParser;
+use CLIParser\CLIParser;
 
 define('ROOT', realpath(dirname(__FILE__)));
 
@@ -12,11 +13,10 @@ $longOptions = [
     ['polyfills', false, 'p'],
     ['folder', true],
     ['name', true],
+    ['type', true],
 ];
 
-// TODO plugin init
-
-$commands = ['build', 'init', 'watch'];
+$commands = ['build', 'init', 'generate', 'watch'];
 
 $cli = new CLIParser($shortOptions, $longOptions);
 

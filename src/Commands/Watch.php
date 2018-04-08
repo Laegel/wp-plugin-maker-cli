@@ -13,6 +13,9 @@ class Watch extends Command {
     ];
 
     public function execute() {
+
+        exec(self::$program . ' ' . self::getStringOptions() . ' build');
+
         $files = new Filesystem();
         $tracker = new Tracker();
         $watcher = new Watcher($tracker, $files);
@@ -22,7 +25,7 @@ class Watch extends Command {
         $listener->anything(function($event, $resource, $filePath) {
             $code = $event->getCode();
             $folder = $this->getEnvFromFilePath($filePath);
-            if ('all' === $folder || in_array($folder, self::$folders)) {
+            if ('All' === $folder || in_array($folder, self::$folders)) {
                 $this->onChange(self::$codesMap[$code] . 'Handler', $filePath);
             }
         });
@@ -53,10 +56,5 @@ class Watch extends Command {
 
     private function modifiedHandler($filePath) {
         $this->log('Modified file:' . $filePath);
-    }
-
-    private function getEnvFromFilePath($filePath) {
-        $replaced = str_replace(self::$dir . DIRECTORY_SEPARATOR, '', $filePath);
-        return explode(DIRECTORY_SEPARATOR, $replaced)[1];
     }
 }

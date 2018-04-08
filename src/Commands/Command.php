@@ -1,5 +1,6 @@
 <?php
 namespace WP_Plugin_Maker_CLI\Commands;
+use WP_Plugin_Maker_CLI\Template\Template;
 
 abstract class Command {
     public static $dir;
@@ -7,7 +8,7 @@ abstract class Command {
     public static $options = [];
     
     protected static $folders = [
-        'admin', 'cli', 'front', 'rest'
+        'Admin', 'CLI', 'Front', 'REST'
     ];
 
     public static function init($program, $options) {
@@ -44,5 +45,19 @@ abstract class Command {
     public static function pluginDirNameToNamespace() {
         $e = explode(DIRECTORY_SEPARATOR, self::$dir);
         return str_replace(' ', '', ucwords(str_replace(['-', ' '], '_', $e[count($e) - 1]), '_'));
+    }
+
+    protected function saveFileFromTemplate($name, $path, array $vars = []) {
+        $template = Template::get($name);
+        file_put_contents($path, $template->render($vars));
+    }
+
+    protected function getEnvFromFilePath($filePath) {
+        $replaced = str_replace(self::$dir . DIRECTORY_SEPARATOR, '', $filePath);
+        return explode(DIRECTORY_SEPARATOR, $replaced)[1];
+    }
+
+    protected function getPluginInfo() {
+        return require self::$dir . DIRECTORY_SEPARATOR . 'wpm-info.php';
     }
 }
