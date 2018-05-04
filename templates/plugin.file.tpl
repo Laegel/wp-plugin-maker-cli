@@ -5,7 +5,7 @@ Plugin Name: {{PLUGIN_NAME}}
 Version: 0.1.0
 */
 
-require 'src' . DIRECTORY_SEPARATOR . 'Plugin.php';
+require 'src' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 register_activation_hook(__FILE__, '{{PLUGIN_NS}}\Plugin::on_activate');
 register_activation_hook(__FILE__, '{{PLUGIN_NS}}\Plugin::on_deactivate');
