@@ -26,6 +26,7 @@ class Build extends Command {
 		foreach ($folders as $folder) {
 			self::$dataRequire = [];
 			self::$currentNamespace = self::pluginDirNameToNamespace() . '\\' . ucfirst($folder);
+
 			self::browseFolder(self::$dir . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $folder);
 
 			$toAdd = array_merge($toAdd, self::$dataRequire);
@@ -47,36 +48,36 @@ class Build extends Command {
 				if (is_dir($folder . DIRECTORY_SEPARATOR . $file)) { // Recurs
 					self::browseFolder($folder . DIRECTORY_SEPARATOR . $file);
 				} elseif ((substr($file, -15) === '_Controller.php')) { // Process *_Controller.php files only
-					require_once $folder . DIRECTORY_SEPARATOR . $file;
 					$class = self::$currentNamespace . '\\' .
 						str_replace('-', '_', ucwords(str_replace([$folder . DIRECTORY_SEPARATOR, '.php'], '', $file), '-'));
+					if (!class_exists($class)) {
+						require_once $folder . DIRECTORY_SEPARATOR . $file;
+					}
 
 					$parser = new Method($class);
 					$parsed = $parser->parse(function($method, $metadata) {
-						/*
-									// Is AJAX
-			if (isset($metadata->ajax) || isset($metadata->ajax_nopriv)) {
-				$params = $reflection_method->getParameters();
+						
+						// // Is AJAX
+						// if (isset($metadata->ajax) || isset($metadata->ajax_nopriv)) {
+						// 	$params = $reflection_method->getParameters();
 
-				$action = [
-					'callback'   => $method->class . '::' . $method->name,
-					'priority'   => isset($metadata->priority) ? (int)$metadata->priority : 10,
-					'args_count' => count($params)
-				];
+						// 	if (isset($metadata->ajax)) {
+						// 		$action['name'] = 'wp_ajax_' . $method->name;
+						// 		$data['actions'][] = $action;
+						// 	}
 
-				if (isset($metadata->ajax)) {
-					$action['name'] = 'wp_ajax_' . $method->name;
-					$data['actions'][] = $action;
-				}
-
-				if (isset($metadata->ajax_nopriv)) {
-					$action['name'] = 'wp_ajax_nopriv_' . $method->name;
-					$data['actions'][] = $action;
-				}
-			}
-						*/
+						// 	if (isset($metadata->ajax_nopriv)) {
+						// 		$action['name'] = 'wp_ajax_nopriv_' . $method->name;
+						// 		$data['actions'][] = $action;
+						// 	}
+						// }
+						
+						if (0 !== strpos($method->name, 'action_') && 0 !== strpos($method->name, 'filter_')) {
+							return;
+						}
+						$name = isset($metadata->ajax) ? 'wp_ajax_' . $method->name : $method->name;
 						return [
-							'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', $method->name, $count = 1),
+							'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', $name, $count = 1),
 							'callback' => $method->class . '::' . $method->name,
 							'priority' => isset($metadata->priority) ? (int)$metadata->priority : 10,
 							'args_count' => count($method->getParameters())
@@ -85,8 +86,8 @@ class Build extends Command {
 
 					if (!empty($parsed)) {
 						self::$dataRequire[$class] = [
-							'actions' => $parsed,
-							'path' => str_replace(self::$dir, '', $folder . DIRECTORY_SEPARATOR . $file)
+							'actions' => array_values($parsed),
+							// 'path' => str_replace(self::$dir, '', $folder . DIRECTORY_SEPARATOR . $file)
 						];
 					}
 				}

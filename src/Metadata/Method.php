@@ -16,7 +16,7 @@ class Method extends Parser {
             $parsed = $this->parse_method($method);
             $metadata[] = $callback($method, $parsed);            
         }
-        return $metadata;
+        return array_filter($metadata);
     }
 
     protected function parse_method(\ReflectionMethod $method) {
