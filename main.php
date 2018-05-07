@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
-require 'vendor/autoload.php';
 require 'polyfills.php';
 
 use CLIParser\CLIParser;
