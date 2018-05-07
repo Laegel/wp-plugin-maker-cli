@@ -2,6 +2,9 @@
     "name": "laegel/wp-plugin-maker-cli",
     "description": "wp-plugin-maker CLI",
     "type": "library",
+    "bin": [
+        "bin/wp-plugin-maker-cli"
+    ],
     "scripts": {
         "watch": "./main.php watch"
     },
