@@ -55,33 +55,43 @@ class Build extends Command {
 					}
 
 					$parser = new Method($class);
-					$parsed = $parser->parse(function($method, $metadata) {
-						
-						// // Is AJAX
-						// if (isset($metadata->ajax) || isset($metadata->ajax_nopriv)) {
-						// 	$params = $reflection_method->getParameters();
+					$parsed = $parser->parse(function($method, $metadata) { // REFACTOR
+						$actions = [];
 
-						// 	if (isset($metadata->ajax)) {
-						// 		$action['name'] = 'wp_ajax_' . $method->name;
-						// 		$data['actions'][] = $action;
-						// 	}
-
-						// 	if (isset($metadata->ajax_nopriv)) {
-						// 		$action['name'] = 'wp_ajax_nopriv_' . $method->name;
-						// 		$data['actions'][] = $action;
-						// 	}
-						// }
+						$params = [
+							'priority', 'ajax', 'ajax_nopriv', 'namespace'
+						];
+						$data = [];
+						foreach ($metadata as $key => $value) {
+							if (!in_array($key, $params)) {
+								$data[$key] = $value;
+							}
+						}
 						
 						if (0 !== strpos($method->name, 'action_') && 0 !== strpos($method->name, 'filter_')) {
 							return;
 						}
 						$name = isset($metadata->ajax) ? 'wp_ajax_' . $method->name : $method->name;
-						return [
+
+						$actions[] = [
 							'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', $name, $count = 1),
 							'callback' => $method->class . '::' . $method->name,
 							'priority' => isset($metadata->priority) ? (int)$metadata->priority : 10,
-							'args_count' => count($method->getParameters())
+							'args_count' => count($method->getParameters()),
+							'data' => $data
 						];
+
+						if (isset($metadata->ajax_nopriv)) {
+							$actions[] = [
+								'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', isset($metadata->ajax) ? 'wp_ajax_nopriv_' . $method->name : $method->name, $count = 1),
+								'callback' => $method->class . '::' . $method->name,
+								'priority' => isset($metadata->priority) ? (int)$metadata->priority : 10,
+								'args_count' => count($method->getParameters()),
+								'data' => $data
+							];
+						}
+
+						return $actions;
 					});
 
 					if (!empty($parsed)) {

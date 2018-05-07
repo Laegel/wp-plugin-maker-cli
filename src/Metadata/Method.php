@@ -14,7 +14,10 @@ class Method extends Parser {
         $metadata = [];
         foreach ($this->methods as $method) {
             $parsed = $this->parse_method($method);
-            $metadata[] = $callback($method, $parsed);            
+            $returned = $callback($method, $parsed);
+            for ($i = 0; $i < count($returned); ++$i) {
+                $metadata[] = $returned[$i];
+            }
         }
         return array_filter($metadata);
     }
@@ -22,17 +25,12 @@ class Method extends Parser {
     protected function parse_method(\ReflectionMethod $method) {
 		$comment = $method->getDocComment();
 
-		$params = [
-			'priority', 'ajax', 'ajax_nopriv', 'namespace'
-		];
-
 		$metadata = (object)[];
 
-		foreach ($params as $param) {
-            // [\w]+
-			if (!empty(preg_match('~@(?:' . $param . '\s*(?:\s*\(\s*(.*)\))?)\n*~', $comment, $parsed))) {
-				$metadata->$param = isset($parsed[1]) ? $parsed[1] : true;
-			}
+		if (!empty(preg_match_all('~@(?:([\w]+)\s*(?:\s*\(\s*(.*)\))?)\n*~', $comment, $parsed, PREG_SET_ORDER))) {
+            foreach ($parsed as $match) {
+                $metadata->{$match[1]} = isset($match[2]) ? $match[2] : true;
+            }
         }
 		return $metadata;
 	}
