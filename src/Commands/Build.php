@@ -59,7 +59,7 @@ class Build extends Command {
 						$actions = [];
 
 						$params = [
-							'priority', 'ajax', 'ajax_nopriv', 'namespace'
+							'priority', 'ajax', 'ajax_nopriv', 'namespace', 'admin_post', 'admin_post_nopriv'
 						];
 						$data = [];
 						foreach ($metadata as $key => $value) {
@@ -71,26 +71,39 @@ class Build extends Command {
 						if (0 !== strpos($method->name, 'action_') && 0 !== strpos($method->name, 'filter_')) {
 							return;
 						}
-						$name = isset($metadata->ajax) ? 'wp_ajax_' . $method->name : $method->name;
-
-						$actions[] = [
-							'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', $name, $count = 1),
-							'callback' => $method->class . '::' . $method->name,
-							'priority' => isset($metadata->priority) ? (int)$metadata->priority : 10,
-							'args_count' => count($method->getParameters()),
-							'data' => $data
-						];
-
-						if (isset($metadata->ajax_nopriv)) {
-							$actions[] = [
-								'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', isset($metadata->ajax) ? 'wp_ajax_nopriv_' . $method->name : $method->name, $count = 1),
-								'callback' => $method->class . '::' . $method->name,
-								'priority' => isset($metadata->priority) ? (int)$metadata->priority : 10,
-								'args_count' => count($method->getParameters()),
-								'data' => $data
-							];
+						
+						$specialParams = ['ajax', 'ajax_nopriv', 'admin_post', 'admin_post_nopriv'];
+						
+						$hasSpecialParam = false;
+						foreach ($specialParams as $specialParam) {
+                            if (isset($metadata->$specialParam)) {
+                                $hasSpecialParam = true;
+                                break;
+                            }
 						}
-
+						if ($hasSpecialParam) {
+                            foreach ($specialParams as $specialParam) {
+                                if (isset($metadata->$specialParam)) {
+                                    $name = (in_array($specialParam, ['ajax', 'ajax_nopriv']) ? 'wp_' : '') . $specialParam . '_' . $method->name;
+                                    $actions[] = [
+                                        'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', $name, $count = 1),
+                                        'callback' => $method->class . '::' . $method->name,
+                                        'priority' => isset($metadata->priority) ? (int)$metadata->priority : 10,
+                                        'args_count' => count($method->getParameters()),
+                                        'data' => $data
+                                    ];
+                                }
+                            }
+						} else {
+                            $actions[] = [
+                                'name' => (isset($metadata->namespace) ? $metadata->namespace : '') . str_replace(['action_', 'filter_'], '', $method->name, $count = 1),
+                                'callback' => $method->class . '::' . $method->name,
+                                'priority' => isset($metadata->priority) ? (int)$metadata->priority : 10,
+                                'args_count' => count($method->getParameters()),
+                                'data' => $data
+                            ];
+						}
+						
 						return $actions;
 					});
 
